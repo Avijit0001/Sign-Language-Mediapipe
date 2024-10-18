@@ -33,4 +33,3 @@ if uploaded_file is not None:
 
     class_id, confidence = classify_image(img)
     st.write(f"Prediction: {class_names[class_id]}")
-    st.write(f"Confidence: {confidence:.2f}%")
