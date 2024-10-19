@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Sign Language Detection</h1>
+
+        <div class="video-container">
+            <img src="{{ url_for('video_feed') }}" alt="Live Feed" id="video">
+        </div>
+
+        <div class="buttons">
+            <button class="blue-button" onclick="predict()">Add Sign</button>
+            <button class="blue-button" onclick="clearSentence()">Clear Sentence</button>
+        </div>
+
+        <div class="output">
+            <h3>Predicted Sign: <span id="predicted-sign"></span></h3>
+            <h3>Current Sentence: <span id="current-sentence"></span></h3>
+        </div>
+    </div>
+
+    <script>
+        function predict() {
+            fetch('/predict', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('predicted-sign').textContent = data.predicted_class;
+                document.getElementById('current-sentence').textContent = data.sentence;
+            });
+        }
+
+        function clearSentence() {
+            fetch('/clear', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(() => {
+                document.getElementById('predicted-sign').textContent = '';
+                document.getElementById('current-sentence').textContent = '';
+            });
+        }
+    </script>
+</body>
+</html>
