@@ -1,35 +1,53 @@
 import streamlit as st
-import numpy as np
-import tensorflow as tf
-from tensorflow.keras.preprocessing import image
+import cv2
 
+# Title of the app
+st.title("Webcam Feed")
 
-model = tf.keras.models.load_model("C:\\Code_EveryThing\\Git_Project\\SignLanguageMnist\\model.h5")
+# Initialize state for webcam and captured image
+if 'is_webcam_on' not in st.session_state:
+    st.session_state.is_webcam_on = False
+if 'captured_image' not in st.session_state:
+    st.session_state.captured_image = None
 
-class_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'del', 'nothing', 'space']
+# Button to start/stop the webcam
+if st.button("Toggle Webcam", key="toggle_webcam"):
+    st.session_state.is_webcam_on = not st.session_state.is_webcam_on
 
-def load_and_preprocess_image(img):
-    img = img.resize((128, 128))  
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array /= 255.0
-    return img_array
+# If the webcam is on, display the video feed
+if st.session_state.is_webcam_on:
+    # Create a placeholder for the webcam feed
+    video_placeholder = st.empty()
+    
+    # Initialize the webcam
+    cap = cv2.VideoCapture(0)
 
-def classify_image(img):
-    img = load_and_preprocess_image(img)
-    predictions = model.predict(img)
-    score = tf.nn.softmax(predictions[0])
-    return np.argmax(score), 100 * np.max(score)
+    if not cap.isOpened():
+        st.error("Error: Could not open webcam.")
+    else:
+        while st.session_state.is_webcam_on:
+            ret, frame = cap.read()  # Capture frame from webcam
+            if not ret:
+                st.error("Error: Could not read frame.")
+                break
+            
+            # Convert the frame to RGB format
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-st.title("Image Classification App")
-st.write("Upload an image to classify it.")
+            # Display the webcam frame in the Streamlit app
+            video_placeholder.image(frame_rgb, channels="RGB", use_column_width=True)
 
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+            # Button to capture the image with a unique key
+            if st.button("Capture", key="capture_button"):
+                st.session_state.captured_image = frame_rgb  # Store the captured image
+                st.write("Image Captured!")
+                st.session_state.is_webcam_on = False  # Turn off the webcam
 
-if uploaded_file is not None:
-    img = image.load_img(uploaded_file)
-    st.image(img, caption='Uploaded Image', use_column_width=True)
-    st.write("Classifying...")
+        # Cleanup: Release the webcam when done
+        cap.release()
+        video_placeholder.empty()
+        st.write("Webcam stopped.")
 
-    class_id, confidence = classify_image(img)
-    st.write(f"Prediction: {class_names[class_id]}")
+# Show the captured image if available
+if st.session_state.captured_image is not None:
+    st.image(st.session_state.captured_image, caption="Captured Image", channels="RGB", use_column_width=True)

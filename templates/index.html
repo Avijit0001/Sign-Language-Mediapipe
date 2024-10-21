@@ -4,49 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Language Detection</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Sign Language Detection</h1>
+    <h1>Sign Language Detection</h1>
+    
+    <!-- Model upload form -->
+    <form action="/upload_model" method="POST" enctype="multipart/form-data">
+        <label for="model_file">Upload .h5 Model:</label>
+        <input type="file" id="model_file" name="model_file" accept=".h5" required>
+        <input type="submit" value="Upload Model">
+    </form>
 
-        <div class="video-container">
-            <img src="{{ url_for('video_feed') }}" alt="Live Feed" id="video">
-        </div>
+    <!-- Toggle webcam button -->
+    <form action="/toggle_cam" method="POST">
+        <input type="submit" value="{{ 'Stop Webcam' if cam_status == 'on' else 'Start Webcam' }}">
+    </form>
 
-        <div class="buttons">
-            <button class="blue-button" onclick="predict()">Add Sign</button>
-            <button class="blue-button" onclick="clearSentence()">Clear Sentence</button>
-        </div>
+    <!-- Capture button -->
+    <form action="/capture" method="POST">
+        <input type="submit" value="Capture">
+    </form>
 
-        <div class="output">
-            <h3>Predicted Sign: <span id="predicted-sign"></span></h3>
-            <h3>Current Sentence: <span id="current-sentence"></span></h3>
-        </div>
-    </div>
+    <!-- Display captured image -->
+    {% if captured_image %}
+    <h2>Captured Hand Image:</h2>
+    <img src="{{ captured_image }}" alt="Captured Hand Image">
+    {% endif %}
 
-    <script>
-        function predict() {
-            fetch('/predict', {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('predicted-sign').textContent = data.predicted_class;
-                document.getElementById('current-sentence').textContent = data.sentence;
-            });
-        }
-
-        function clearSentence() {
-            fetch('/clear', {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(() => {
-                document.getElementById('predicted-sign').textContent = '';
-                document.getElementById('current-sentence').textContent = '';
-            });
-        }
-    </script>
+    <!-- Display prediction -->
+    {% if prediction is not none %}
+    <h2>Predicted Class: {{ prediction }}</h2>
+    {% endif %}
 </body>
 </html>
