@@ -1,0 +1,5 @@
+tensorflow<2.11
+flask
+mediapipe
+protobuf
+cv2
